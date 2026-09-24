@@ -1,0 +1,14 @@
+{
+  "name": "agentspa",
+  "description": "AgentSpa: a pixel-art spa lobby for your Claude Code agents.",
+  "owner": {
+    "name": "David Rukahu"
+  },
+  "plugins": [
+    {
+      "name": "agentspa",
+      "source": "./",
+      "description": "A pixel-art spa lobby where your Claude Code agents wander between rooms based on what they are doing."
+    }
+  ]
+}

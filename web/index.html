@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentSpa Lobby</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Space+Grotesk:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --bg: #17110e;
+    --panel: #221915;
+    --line: #3a2b24;
+    --text: #f3e9dc;
+    --muted: #b7a593;
+    --teal: #6fd3c7;
+    --warn: #f4c95d;
+    --hot: #ff8a6b;
+    --pixel: "Silkscreen", ui-monospace, monospace;
+    --sans: "Space Grotesk", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); }
+  body { min-height: 100vh; padding: 20px 16px 32px; }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  h1 { font-family: var(--pixel); font-weight: 400; font-size: 26px; margin: 0; letter-spacing: 1px; }
+  h1 span { color: var(--teal); }
+  .sub { color: var(--muted); font-size: 14px; margin-left: 10px; }
+  .status { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+  .status b { color: var(--text); font-weight: 500; }
+  .status .needs { color: var(--warn); }
+  .status .circles { color: var(--hot); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #666; display: inline-block; }
+  .dot.live { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+
+  .stage { position: relative; width: 100%; aspect-ratio: 320 / 180; container-type: inline-size;
+           border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: #2a201c; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  .overlay { position: absolute; inset: 0; pointer-events: none; }
+
+  .room-label { position: absolute; font-family: var(--pixel); font-size: max(8px, 1.05cqw); line-height: 1.15;
+                color: #fff; background: rgba(23, 17, 14, .55); padding: .15em .45em .2em; border-radius: 0 0 .4em 0; }
+  .room-label small { display: block; font-family: var(--sans); font-size: .85em; color: #e8dccd; opacity: .85; }
+
+  .tag { position: absolute; transform: translate(-50%, -100%); pointer-events: auto; white-space: nowrap;
+         font-size: max(9px, 1cqw); line-height: 1.2; text-align: center; }
+  .tag .name { display: inline-block; font-weight: 700; padding: .1em .45em; border-radius: .5em;
+               background: rgba(23, 17, 14, .82); border: 1px solid var(--belt, #999); color: #fff; }
+  .tag .detail { display: none; margin-top: .25em; padding: .25em .5em; border-radius: .4em; background: rgba(23,17,14,.92);
+                 color: var(--text); font-weight: 400; max-width: 32cqw; overflow: hidden; text-overflow: ellipsis; }
+  .tag:hover { z-index: 10; }
+  .tag:hover .detail, .tag.waiting .detail { display: block; }
+  .tag.friend .name { font-weight: 500; font-style: italic; background: rgba(23,17,14,.6); }
+  .tag.waiting .name { background: var(--warn); color: #2a1d10; animation: pulse 1.2s ease-in-out infinite; }
+  .tag.stuck .name { background: var(--hot); color: #2a1d10; }
+  @keyframes pulse { 50% { transform: translateY(-2px); } }
+  /* On a phone the guest book carries the details; keep the scene uncluttered. */
+  @container (max-width: 560px) {
+    .room-label { font-size: 6px; }
+    .room-label small { display: none; }
+    .tag { font-size: 7px; }
+    .tag .name { padding: 0 .35em; }
+    .tag .detail, .tag.waiting .detail { display: none; }
+    .tag.friend { display: none; }
+  }
+
+  .empty { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: auto;
+           background: rgba(23, 17, 14, .88); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; max-width: 90%; }
+  .empty h2 { font-family: var(--pixel); font-weight: 400; font-size: 16px; margin: 0 0 6px; }
+  .empty p { margin: 4px 0; color: var(--muted); font-size: 14px; }
+  code { font-family: ui-monospace, monospace; background: #0f0b09; padding: 1px 6px; border-radius: 4px; color: var(--teal); }
+  [hidden] { display: none !important; }
+
+  .book { margin-top: 18px; }
+  .book h2 { font-family: var(--pixel); font-weight: 400; font-size: 15px; margin: 0 0 8px; color: var(--muted); }
+  .book ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .book li { display: grid; grid-template-columns: 12px minmax(90px, 160px) minmax(80px, 120px) 1fr auto; gap: 10px; align-items: baseline;
+             background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+  .book .belt { width: 10px; height: 10px; border-radius: 3px; align-self: center; }
+  .book .who { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .book .who.friend { font-weight: 500; font-style: italic; padding-left: 12px; }
+  .book .where { color: var(--teal); }
+  .book .what { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .book .when { color: var(--muted); font-size: 12px; }
+  .book li.waiting .where { color: var(--warn); }
+  .book li.stuck .where { color: var(--hot); }
+  @media (max-width: 640px) {
+    .book li { grid-template-columns: 12px 1fr auto; }
+    .book .what { grid-column: 2 / -1; }
+    .book .when { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>Agent<span>Spa</span></h1><span class="sub">where your agents unwind between tool calls</span></div>
+    <div class="status"><span class="dot" id="dot"></span><span id="stats">connecting...</span></div>
+  </header>
+
+  <div class="stage" id="stage">
+    <canvas id="spa" width="320" height="180"></canvas>
+    <div class="overlay" id="overlay"></div>
+    <div class="empty" id="empty" hidden>
+      <h2>The lobby is quiet</h2>
+      <p>Start a Claude Code session with the plugin and your agent will check in.</p>
+      <p>Just looking? Run <code>spa lobby --demo</code></p>
+    </div>
+  </div>
+
+  <section class="book">
+    <h2>Guest book</h2>
+    <ul id="book"></ul>
+  </section>
+</div>
+<script type="module" src="/lobby.js"></script>
+</body>
+</html>

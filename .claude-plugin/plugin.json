@@ -1,0 +1,17 @@
+{
+  "name": "agentspa",
+  "version": "0.3.0",
+  "description": "A pixel-art spa lobby where your Claude Code agents wander between rooms based on what they are doing.",
+  "author": {
+    "name": "David Rukahu"
+  },
+  "homepage": "https://github.com/davidrukahu/agentspa",
+  "repository": "https://github.com/davidrukahu/agentspa",
+  "license": "MIT",
+  "keywords": [
+    "fun",
+    "visualization",
+    "hooks",
+    "pixel-art"
+  ]
+}

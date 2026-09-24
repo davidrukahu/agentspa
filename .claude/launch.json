@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lobby-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["bin/spa.mjs", "lobby", "--demo", "--port", "4545"],
+      "port": 4545
+    }
+  ]
+}

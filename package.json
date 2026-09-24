@@ -1,0 +1,17 @@
+{
+  "name": "agentspa",
+  "version": "0.3.0",
+  "description": "A pixel-art spa lobby where your Claude Code agents wander between rooms based on what they are doing.",
+  "type": "module",
+  "bin": {
+    "spa": "bin/spa.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/",
+    "gif": "node scripts/record-gif.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
